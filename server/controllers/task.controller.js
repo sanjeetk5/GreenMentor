@@ -1,17 +1,17 @@
-const express = require("express")
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
 const Task = require("../models/task.model.js");
 const { authentication } = require("../middlewares/authentication.js");
 
-router.get("/getTask" , async(req,res) => {
-    try {
-        const tasks = await Task.find();
-        res.json(tasks);
-      } catch (err) {
-        res.status(500).json({ message: err.message });
-      }
-})
+router.get("/getTask", async (req, res) => {
+  try {
+    const tasks = await Task.find();
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // router.post('/addTask', async (req, res) => {
 //     const task = new Task({
@@ -26,91 +26,90 @@ router.get("/getTask" , async(req,res) => {
 //     }
 //   });
 
-
-router.post('/addTask', authentication , async (req, res) => {
+router.post("/addTask", authentication, async (req, res) => {
   try {
     const { title, description } = req.body;
     const userId = req.user.id; // Extract user ID from authenticated user
-    console.log(userId)
+    console.log(userId);
     // Create a new task object with the provided data and user ID
     const newTask = new Task({
       title,
       description,
-      userId
+      userId,
     });
 
     // Save the new task to the database
     await newTask.save();
 
+    console.log(newTask);
 
-    console.log(newTask)
-
-    res.status(201).json({ message: 'Task created successfully', newTask });
+    res.status(201).json({ message: "Task created successfully", newTask });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-
-router.get('/usertask', authentication, async (req, res) => {
+router.get("/usertask", authentication, async (req, res) => {
   try {
     const userId = req.user.id; // Extract user ID from authenticated user
 
     // Find tasks associated with the user ID
     const tasks = await Task.find({ userId: userId });
 
-    console.log(tasks)
+    console.log(tasks);
 
     // If no tasks found for the user, return an empty array
     if (!tasks || tasks.length === 0) {
-      return res.status(404).json({ message: 'No tasks found for the user' });
+      return res.status(404).json({ message: "No tasks found for the user" });
     }
 
     // Return tasks data for the user
     res.status(200).json(tasks);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-
-router.patch('/completion/:id', async (req, res) => {
-  const { id } = req.params;
-  const { completed } = req.body;
+router.patch("/completion/:id", async (req, res) => {
+  console.log("Task ID:", req.params.id); // Log the task ID
 
   try {
-    const task = await Task.findByIdAndUpdate(id, { completed }, { new: true });
+    const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: "Task not found" });
     }
 
     res.json(task);
+    console.log("Task updated with ID :", req.params.id);
   } catch (error) {
-    console.error('Error updating task completion status:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error updating task completion status:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
-  router.patch('/updateTask/:id', async (req, res) => {
-    try {
-      const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      res.json(updatedTask);
-    } catch (err) {
-      res.status(400).json({ message: err.message });
-    }
-  });
+router.patch("/updateTask/:id", async (req, res) => {
+  try {
+    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    res.json(updatedTask);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 
+router.delete("/deleteTask/:id", async (req, res) => {
+  try {
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ message: "Task deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
-  router.delete('/deleteTask/:id', async (req, res) => {
-    try {
-      await Task.findByIdAndDelete(req.params.id);
-      res.json({ message: 'Task deleted' });
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
-  });
-  
-  module.exports = router;
+module.exports = router;
