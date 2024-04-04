@@ -76,7 +76,7 @@ router.get('/usertask', authentication, async (req, res) => {
 });
 
 
-router.put('/completion/:id', async (req, res) => {
+router.patch('/completion/:id', async (req, res) => {
   const { id } = req.params;
   const { completed } = req.body;
 
