@@ -75,6 +75,25 @@ router.get('/usertask', authentication, async (req, res) => {
   }
 });
 
+
+router.put('/tasks/:id/completion', async (req, res) => {
+  const { id } = req.params;
+  const { completed } = req.body;
+
+  try {
+    const task = await Task.findByIdAndUpdate(id, { completed }, { new: true });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    res.json(task);
+  } catch (error) {
+    console.error('Error updating task completion status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
   router.patch('/updateTask/:id', async (req, res) => {
     try {
       const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
